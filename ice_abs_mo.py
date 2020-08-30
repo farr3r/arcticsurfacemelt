@@ -5,9 +5,14 @@ import numpy as np
 import pandas as pd
 
 
-def data(year):
+def ice_abs(year):
+    """ This function returns an EASE grid with the cumulative radiation absorbed by ice during the melt season.
+    Makre sure to replace the paths to app-x 1400 and 0400 passes, the sic and melt mask data-sets and the path 
+    where youd like to save the files to.
+    """
+    
     # fetch 1400 data betwen apr15 and oct15
-    os.chdir('/cpdata/SATS/RADIOMETERS/avhrr-polar-pathfinder-extended/v2/nhem/'+str(year))
+    os.chdir(path+str(year)) # replace path to app-x 1400 data
     files_1400 = sorted(glob.glob('Polar-APP-X_v02r00_Nhem_1400_d*.nc'))
     files_1400 = files_1400[104:288]
     
@@ -29,7 +34,7 @@ def data(year):
     lwu = lwu.groupby('time.dayofyear').mean()
     
     # fetch 0400 swd data betwen apr15 and oct15
-    os.chdir('/cpdata/SATS/RADIOMETERS/avhrr-polar-pathfinder-extended/v2/nhem/'+str(year))
+    os.chdir(path+str(year)) # replace path to app-x 0400 data
     files_0400 = sorted(glob.glob('Polar-APP-X_v02r00_Nhem_0400_d*.nc'))
     files_0400 = files_0400[104:288]
     da_0400 = xr.open_mfdataset(files_0400, concat_dim='Time', combine='nested').load()
@@ -48,7 +53,7 @@ def data(year):
     swd_avg = r.mean().where(swd_avg > r.mean() - 3 * r.std())
     
     # fetch sic data
-    file_sic = '/raid6/userdata/fob/sic_EASE_nc/sic_EASE_'+str(year)+'.nc'
+    file_sic = path+'sic_EASE_'+str(year)+'.nc' # replace path to sic data
     sic_data = xr.open_dataset(file_sic).load()
     sic = sic_data.sic.load()
     sic = sic.where(sic <= 1).where(sic >= 0) # only valid values
@@ -60,7 +65,7 @@ def data(year):
     
     # fetch melt mask (1 for all cells where ice is melting, ie after melt onset and before freeze up,
     # 0 for before mo and after fup)
-    file_melt = '/raid6/userdata/fob/cmo_EASE_nc/cmo_EASE_'+str(year)+'.nc'
+    file_melt = path+'cmo_EASE_'+str(year)+'.nc' # replace path to melt mask data
     melt_mask_data = xr.open_dataset(file_melt).load()
     melt_mask = melt_mask_data.melting.load()
     melt_mask_data.close()
@@ -89,8 +94,8 @@ def data(year):
 
 # iterate through the years to calculate
 for year in range(1982,2018):
-    ds2 = data(year)
-    ds2.to_netcdf(path='/raid6/userdata/fob/ice_abs_mo/ice_abs_mo_'+str(year)+'.nc')
+    ds2 = ice_abs(year)
+    ds2.to_netcdf(path) # replace with path to save files to
     # saves to raid6 server as the other server cant take it
     ds2.close()
     print('done ', year)
