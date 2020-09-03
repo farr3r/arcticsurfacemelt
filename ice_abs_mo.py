@@ -65,6 +65,7 @@ def ice_abs(year):
     
     # fetch melt mask (1 for all cells where ice is melting, ie after melt onset and before freeze up,
     # 0 for before mo and after fup)
+    # these melt masks were made using melt_onset_tonetcdf.ipynb notebook
     file_melt = path+'cmo_EASE_'+str(year)+'.nc' # replace path to melt mask data
     melt_mask_data = xr.open_dataset(file_melt).load()
     melt_mask = melt_mask_data.melting.load()
